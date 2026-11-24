@@ -31,6 +31,40 @@ It also detects what kind of project you deployed and offers the usual post-depl
 
 Each can also be ticked as **"run after clone / pull"**. Order: Composer, frontend build, migrations, storage link. A failed step stops the rest.
 
+### Supported project types
+
+**Frontend build** - any project whose `package.json` has a `build` script. The card shows the detected type:
+
+| Detected from `package.json` | Shown as | Typical project |
+|---|---|---|
+| `next` | Next.js | Next.js app |
+| `nuxt` / `nuxt3` | Nuxt | Nuxt (Vue) app |
+| `react` | React | Create React App, Vite + React |
+| `vue` | Vue | Vue CLI, Vite + Vue |
+| `svelte` | Svelte | Svelte / SvelteKit |
+| `@angular/core` | Angular | Angular app |
+| `vite` | Vite | any other Vite project |
+| `laravel-mix` | Laravel Mix | Laravel with Mix |
+| Laravel (`artisan` + `public/index.php`) plus any of the above | Laravel + Vue / React / ... | Laravel with Vite + Vue or React (Inertia, Breeze, Jetstream) |
+| anything else with a `build` script | Node | generic Node project |
+
+Package manager is picked from the lock file: `pnpm-lock.yaml` = pnpm, `yarn.lock` = yarn, otherwise npm (`npm ci` when `package-lock.json` exists). Commands: `npm ci` / `npm install`, then `npm run build` (`yarn build`, `pnpm run build`).
+
+**Migrations** - detected by a marker file plus migration files in the default folder:
+
+| Framework | Marker | Migration folder | Command run |
+|---|---|---|---|
+| Laravel | `artisan` | `database/migrations` | `php artisan migrate --force` |
+| CodeIgniter 4 | `spark` | `app/Database/Migrations` | `php spark migrate` |
+| Symfony (Doctrine) | `bin/console` | `migrations` | `php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration` |
+| Yii 2 | `yii` | `migrations` | `php yii migrate --interactive=0` |
+| CakePHP | `bin/cake` | `config/Migrations` | `php bin/cake migrations migrate` |
+| Phinx (standalone) | `phinx.php` / `.yml` / `.yaml` / `.json` | `db/migrations` or `database/migrations` | `php vendor/bin/phinx migrate` |
+
+**Laravel-only tools** (Storage link, Laravel `.htaccess`) are hidden unless the folder has both `artisan` and `public/index.php`. Composer is shown for any PHP project with a `composer.json`.
+
+Not covered: Django, Rails, Prisma/Knex and other non-PHP migration tools.
+
 ## Requirements
 
 - PHP 7.4+ (tested on 8.x) with `proc_open` enabled
